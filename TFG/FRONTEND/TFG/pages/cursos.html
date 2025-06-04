@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignaturas - Plataforma Educativa</title>
+       <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+    <link rel="stylesheet" href="../css/cursos.css">
+  </head>
+<body>
+
+        <!-- Barra de navegación -->
+        <nav>
+            <ul>
+                <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php">Dashboard</a></li>
+                <li><a href="../pages/cursos.html" >Asignaturas</a></li>
+                <li><a href="../pages/tareas.html">Tareas</a></li>
+                <li><a href="../pages/notas.html">Notas</a></li>
+                <li><a href="../index.html">Cerrar sesión</a></li>
+            </ul>
+        </nav>
+    
+        <!-- Contenedor principal -->
+        <main class="container">
+            <h1>Mis Asignaturas</h1>
+    
+            <!-- Contenedor de cursos -->
+            <div id="lista-cursos" class="curso-list">
+                <!-- Aquí se insertarán dinámicamente los cursos con JavaScript -->
+            </div>
+        </main>
+    
+        <!-- Script para obtener y mostrar las asignaturas -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () { //cuando el documento haya terminado de cargar
+            fetch("http://localhost/TFG/BACKEND/TFG/api/get_asignaturas.php") //hacemos una consulta al backend, este enviara
+            //datos de las asignaturas en las que esta asociado el usuario
+                .then(response => response.json()) //metemos dentro de response el resultado de la respuesta del servidor 
+                .then(data => {//introducimos el array de datos en data
+                    console.log("Datos recibidos:", data);//Enseñamos en consola los datos recibidos, util para el desarrollo
+                    const contenedor = document.getElementById("lista-cursos"); //buscamos el div donde insertaremos los cursos 
+                    //y lo guardamos en una constante contenedor
+                    contenedor.innerHTML = ""; //introducimos html en el contenedor
+
+                    if (data.length === 0) { //comprobamos con la longitud del array si hay asignaturas si no las hay 
+                        //nuestro div lista-cursos pondra que no hay asignaturas
+                        contenedor.innerHTML = "<p>No hay asignaturas asignadas.</p>";
+                        return;
+                    }
+
+                    data.forEach(asignatura => {//por cada fila del array lo guardamos en la variable array asignatura
+                        const div = document.createElement("div"); //creamos un div y lo guardamos en la constante div
+                        div.classList.add("curso");//el div que acabmos de crear se le aplica una clase (paara los estilos de la pagina)
+
+                        div.innerHTML = `
+                            <h2><a href="asignaturaID.html?id=${asignatura.id_asignatura}">${asignatura.asignatura}</a></h2>
+                            <p><strong>Curso de la asignatura:</strong> ${asignatura.curso}</p>
+                            <p><strong>Nivel del curso:</strong> ${asignatura.nivel}</p>
+                            <p><strong>Nombre del usuario:</strong> ${asignatura.nombre}</p>
+                             <p><strong>Nombre del profesor:</strong> ${asignatura.profesor.nombre}</p>
+                            <p><strong>Correo del profesor:</strong> ${asignatura.profesor.correo}</p>
+                        `;//creamos el html en el que se dispondra la informacion de los ccursos y lo concatenamos en div
+
+                        contenedor.appendChild(div); //metemos cada div curso dentro del contenedor lista cursos 
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al obtener las asignaturas:", error);
+                });//si hay un error reportarlo
+        });
+        </script>
+          <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+    
+
+</body>
+</html>
+

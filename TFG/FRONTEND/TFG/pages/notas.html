@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+    <title>Notas - Plataforma Educativa</title>
+    <link rel="stylesheet" href="../css/notas.css">
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav>
+        <ul>
+            <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php">Dashboard</a></li>
+            <li><a href="../pages/cursos.html">Asignaturas</a></li>
+            <li><a href="../pages/tareas.html">Tareas</a></li>
+            <li><a href="../pages/notas.html" >Notas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- Contenedor principal -->
+    <main class="container">
+        <h1>Notas</h1>
+
+        <!-- Contenedor de las notas -->
+        <div id="lista-notas" class="nota-list">
+            <!-- Las notas se insertarán dinámicamente aquí -->
+        </div>
+    </main>
+
+
+ 
+ <script>
+document.addEventListener("DOMContentLoaded", function () {//cuando la pagina este cargada completamente
+    fetch('../../../BACKEND/TFG/api/get_notasALUMNOS.php')//hacemos una peticion a un php
+        .then(response => {//cuando el servidor responda
+            if (!response.ok) {//comprobamos que la respuesta llega correctamente
+                throw new Error("No se pudieron cargar las notas");
+            }
+            return response.json();
+        })
+        .then(data => {//cojemos los datos que ha devuelto el servidor 
+            const listaNotas = document.getElementById("lista-notas"); //guardamos el elemento de html list-notas en una constante
+
+            if (data.length === 0) {//comprobamos que han llegado datos
+                listaNotas.innerHTML = "<p>No hay tareas puntuadas aún.</p>";//si no es asi en la constante lisatnotas saldra ese parrafo
+                return;
+            }
+
+            data.forEach(nota => {//dentro de los datos del servidor por cada fila lo guardamos en nota
+                const notaItem = document.createElement("div");//creamos un div que se llame notaitem
+                notaItem.className = "nota-item";//establecenmos una clase para css
+                notaItem.innerHTML = `
+                    <h3>${nota.titulo}</h3>
+                    <p><strong>Asignatura:</strong><a href="asignaturaID.html?id=${nota.id_asignatura}" >${nota.nombre_asignatura}</p>
+                    <p><strong>Nota:</strong> ${nota.nota}</p>
+                    <p><strong>Fecha de entrega:</strong> ${nota.fecha_entrega}</p>
+                `;//concatenamos un html dentro de las nota con los datos recibidos del backend
+                listaNotas.appendChild(notaItem);//metemos cada notaitem dentro de nuestro div gracias a la constante
+            });
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });//reportar si hay error 
+});
+</script>
+  <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+
+ 
+
+</body>
+</html>
+

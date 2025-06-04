@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+       <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+    <title>Detalles de Asignatura</title>
+    <style>
+        #formulario-tarea {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div id="menu-navegacion"></div> <!--en este DIV se insertara el menu segun el tipo de usuario que este en la pagina-->
+    </nav>
+
+    <h1>Detalles de la Asignatura</h1>
+    <div id="info-asignatura"></div><!--En este div se  insertara informacion de la asignatura-->
+
+    <h2>Tareas</h2>
+    <div id="lista-tareas"></div><!--En este div se insertara las tareas relacionadas de esa asignatura-->
+
+    <div id="formulario-tarea"> <!--Este formulario sera el que se muestre para el profesor y que pueda crear una tarea-->
+        <h3>Crear nueva tarea</h3>
+        <form id="nueva-tarea-form" enctype="multipart/form-data" method="post">
+        <input for="id_asignatura" type="hidden" name="id_asignatura" id="id_asignatura">
+        <label for="titulo_tarea">Título de la tarea:</label>
+        <input type="text" name="titulo_tarea" id="titulo_tarea" required><br><br>
+    
+        <label for="descripcion_tarea">Descripción:</label>
+        <textarea name="descripcion_tarea" id="descripcion_tarea" required></textarea><br><br>
+    
+        <label for="fecha_limite">Fecha límite:</label>
+        <input type="datetime-local" name="fecha_limite" id="fecha_limite" required><br><br>
+    
+        <label for="archivo_tarea">Archivo asociado:</label>
+        <input type="file" name="archivo_tarea" id="archivo_tarea" accept=".pdf,.doc,.zip,.txt"><br><br> <!--seria necesario aceptar archivos como videos etc-->
+    
+        <button type="submit">Crear tarea</button>
+    </form>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search); //guardamos en la constante los parametros recibidos
+        const idAsignatura = params.get('id'); //de los parametros recibidos se busca el id de la asignatura recibido de asignaturas
+        //o asignaturas profesor 
+
+        if (idAsignatura) {//si se recibe el id de la asignatura 
+            fetch(`../../../BACKEND/TFG/api/get_asignaturaID.php?id=${idAsignatura}`)//hacemos una peticion al php con el parametro de la asignatura
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('info-asignatura').textContent = data.error;
+                        return;
+                    }
+
+                    const asignatura = data.asignatura[0];//introducimos en el primer elemento del array recibido en la asignatura
+                    //el primero ya que solo se puede recibir una
+                    const infoDiv = document.getElementById('info-asignatura');//buscamos el div donde se insertaran los datos de la asignatura
+                    infoDiv.innerHTML = `
+                        <p><strong>Nombre:</strong> ${asignatura.nombre_asignatura}</p>
+                        <p><strong>Curso:</strong> ${asignatura.nombre_curso} (${asignatura.nivel})</p>
+                        <p><strong>Profesor:</strong> ${asignatura.nombre} (${asignatura.correo})</p>
+                    `;//se inserta este html en el div 
+
+                    const lista = document.getElementById('lista-tareas');//guardamos el div donde se listaran las tareas en una constante 
+lista.innerHTML = ''; // Limpiar contenido anterior
+
+data.tareas.forEach(tarea => {//por cada tarea recibida del fetch
+    const tarjeta = document.createElement('div'); //creamos un div donde se insertara
+    tarjeta.classList.add('tarjeta-tarea'); // Asegúrate de definir esta clase en tu CSS
+
+    tarjeta.innerHTML = `
+        <h3><a href="tareaID.html?id=${tarea.id_tarea}">${tarea.titulo_tarea}</a></h3>
+        <p><strong>Fecha límite:</strong> ${tarea.fecha_limite}</p>
+        <button onclick="eliminarTarea(${tarea.id_tarea})" id="btn-sinuso">🗑️ Eliminar</button>
+    `;//boton que se eliminara si el id_rol del usuario es de alumno 
+
+    lista.appendChild(tarjeta); // metemos cada tarea en nuestra lista de tareas
+});
+
+
+                    if (data.id_rol === 2) {
+                        document.getElementById('formulario-tarea').style.display = 'block';
+                        document.getElementById('id_asignatura').value = idAsignatura; //asignamos un valor del formulario con 
+                        //el valor de la constante asignatura.
+                    } //si el rol del usuario es de profesor se muestra el formulario
+                    // Generar menú según el rol
+                     const menu = document.getElementById("menu-navegacion");//metemos el navegador en la constante menu 
+                    if (data.id_rol == 2) {
+                    // Menú para profesores
+                    menu.innerHTML = `
+                    <nav>
+                         <ul>
+            <li><a href="../dashboard_profesor.html">Dashboard</a></li>
+            <li><a href="asignaturas_profesor.html">Asignaturas</a></li>
+            <li><a href="tareas_profesor.html">Tareas</a></li>
+            <li><a href="tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+        </nav>
+                    `;
+                    } else if (data.id_rol == 1) {//si el id rol es de alumno se oculta el boton de eliminar tareas y se genera su menu correspondiente
+                    document.getElementById("btn-sinuso").style.display = "none";
+                    // Menú para alumnos
+                    menu.innerHTML = `
+                        <ul>
+            <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php">Dashboard</a></li>
+            <li><a href="../pages/cursos.html">Asignaturas</a></li>
+            <li><a href="../pages/tareas.html">Tareas</a></li>
+            <li><a href="../pages/notas.html" >Notas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+                    `;
+    }
+                });
+
+            document.getElementById('nueva-tarea-form').addEventListener('submit', function(e) { //buscammos el formulario 
+                //y escuchamos cuando se envie 
+                e.preventDefault();
+                const formData = new FormData(this); //metemos el formulario en la constante formdata 
+                formData.append("id_asignatura", document.getElementById("id_asignatura").value);
+                fetch('../../../BACKEND/TFG/api/crear_tareas.php', {//enviamos los datos del formulario al backend 
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json()) //la respuesta del backend la guardamos para confirmar si funciona
+                .then(result => {
+                    if (result.success) {
+                        alert('Tarea creada con éxito');
+                        location.reload();
+                    } else {
+                        alert('Error al crear la tarea: ' + (result.error || ''));
+                    }
+                });
+            });
+        }
+function eliminarTarea(id_tarea) {//definimos la funcion de eliminar la tarea que se activa con un parametro
+  if (confirm("¿Estás seguro de que quieres eliminar esta tarea?")) {//mensaje de confirmacion
+    fetch('../../../backend/tfg/api/eliminar_tarea.php', {  // enviamos la orden al backend
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'id_tarea=' + encodeURIComponent(id_tarea)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Tarea eliminada correctamente');//cogemos la respuesta del backend para comprobar si ha funcionado
+        location.reload(); // o elimina la tarjeta directamente desde el DOM
+      } else {
+        alert('Error al eliminar: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Hubo un problema al eliminar la tarea.'); //reportar error 
+    });
+  }
+}
+            
+            
+    </script>
+    <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+
+</body>
+</html>

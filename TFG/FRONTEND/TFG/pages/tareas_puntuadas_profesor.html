@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+    <title>Document</title>
+</head>
+<body>
+    <nav class="navbar">
+        <ul>
+              <li><a href="../dashboard_profesor.html">Dashboard</a></li>
+            <li><a href="asignaturas_profesor.html">Asignaturas</a></li>
+            <li><a href="tareas_profesor.html">Tareas</a></li>
+            <li><a href="tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <div>
+        <h1>En esta pagina encontrara las tareas que ya ha corregido</h1>
+    </div>
+    <table id="tabla-tareas">
+        <thead>
+            <tr>
+                <th>ID Alumno</th>
+                <th>Nombre Alumno</th>
+                <th>Correo Alumno</th>
+                <th>Nombre Tarea</th>
+                <th>Nota</th>
+                <th>ID Entrega</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se insertarán las filas con JavaScript -->
+        </tbody>
+    </table>
+</div>
+<script>
+    // Llamada al PHP que devuelve los datos en JSON
+    fetch('../../../BACKEND/TFG/api/get_tareasPUNTUADAS.php')//peticion al backend
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('#tabla-tareas tbody');//buscamos el cuerpo de la tabla 
+
+            data.forEach(tarea => {//por cada tarea añadimos un tr compuesto por el sigguiente html:
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${tarea.id_alumno}</td>
+                    <td>${tarea.nombre_alumno}</td>
+                    <td>${tarea.correo_alumno}</td>
+                    <td><a href="tareaID.html?id=${tarea.id_tarea}">${tarea.nombre_tarea}</a></td>
+                    <td>${tarea.nota}</td>
+                    <td><a href="entregaID.html?id=${tarea.id_entregado}"${tarea.id_entregado}</td>
+                `;
+                tbody.appendChild(fila);//introducimos cada fila en las filas de laa tabla 
+            });
+        })
+        .catch(error => {
+            console.error('Error al cargar las tareas:', error);
+        });//reportar errores 
+</script>
+  <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+
+</body>
+</html>

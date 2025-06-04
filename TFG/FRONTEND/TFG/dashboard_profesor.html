@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard Profesor</title>
+   <link rel="stylesheet" href="css/styles.css"> <!-- Enlace al archivo CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"> <!-- Fuente -->
+</head>
+
+<body>
+    <!-- Contenedor principal -->
+    <div class="container">
+        <header>
+            <h1>Panel del Profesor</h1>
+            <p>Bienvenido, Profesor. Gestiona tus cursos y tareas aquí.</p>
+        </header>
+
+        <!-- Barra de navegación -->
+        <nav class="navbar">
+            <ul>
+                <li><a href="dashboard_profesor.html">Dashboard</a></li>
+                <li><a href="pages/asignaturas_profesor.html">Asignaturas</a></li>
+                <li><a href="pages/tareas_profesor.html">Tareas</a></li>
+                <li><a href="pages/tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+                <li><a href="../../BACKEND/TFG/api/comprobar_carpeta.php">Aplicaciones</a></li>
+                <li><a href="index.html">Cerrar sesión</a></li>
+            </ul>
+        </nav>
+
+        <!-- Resumen de actividades -->
+        <section class="dashboard-summary">
+            <div class="card">
+                <h3>Mis Asignaturas</h3>
+                <a href="pages/asignaturas_profesor.html" class="btn">Ver Asignaturas</a>
+            </div>
+
+            <div class="card">
+                <h3>Tareas Pendientes</h3>
+                <a href="pages/tareas_profesor.html" class="btn">Ver Tareas sin puntuar</a>
+            </div>
+            <div>
+                <h3>Subir una tarea</h3>    
+                <a href="pages/asignaturas_profesor.html" class="btn"> Para crear una tarea hagalo desde el panel de la asignatura</a>
+
+            </div>
+        </section>
+
+        <!-- Pie de página -->
+        <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+    </div>
+      
+</body>
+
+</html>
+

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+    <title>Asignaturas Profesor</title>
+</head>
+<body>
+    <nav class="navbar">
+        <ul>
+            <li><a href="../dashboard_profesor.html">Dashboard</a></li>
+            <li><a href="asignaturas_profesor.html">Asignaturas</a></li>
+            <li><a href="tareas_profesor.html">Tareas</a></li>
+            <li><a href="tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <div>
+        <h1 style="text-align:center;">Asignaturas que impartes</h1>
+        <div class="contenedor-tarjetas" id="contenedor-asignaturas">
+            <!-- Tarjetas generadas dinámicamente -->
+        </div>
+    </div>
+
+    <script>
+        fetch('../../../BACKEND/TFG/api/get_asignaturasPROFE.php')//hacemos una peticion al backend 
+            .then(response => response.json())
+            .then(data => {
+                const contenedor = document.getElementById('contenedor-asignaturas');//definimos la constate contenedor referenciando el 
+                //div donde almacenaremos las asignaturas
+
+                data.forEach(asignatura => {//por cada asignatura que mande el backend guardamos cada fila en asignatura
+                    const tarjeta = document.createElement('div');//definimos un div y lo guardamos en la constante tarjeta 
+                    tarjeta.className = 'tarjeta'; //le damos una clase para los estilos
+                    tarjeta.innerHTML = `
+                        <h3><a href="asignaturaID.html?id=${asignatura.id_asignatura}">${asignatura.nombre_asignatura}</a></h3>
+
+                        <p><strong>Curso:</strong> ${asignatura.nombre_curso}</p>
+                        <p><strong>Nivel:</strong> ${asignatura.nivel_curso}</p>
+                        <p><strong>ID Asignatura:</strong> ${asignatura.id_asignatura}</p>
+                    `;//concatenamos el html dentro de la tarjeta
+                    contenedor.appendChild(tarjeta); //metemos cada tarjeta dentro del contenedor
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar las asignaturas:', error);
+            });//reportar error 
+    </script>
+
+    <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+</body>
+  
+</html>

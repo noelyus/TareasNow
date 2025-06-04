@@ -1,0 +1,34 @@
+TFG/
+│
+├── index.html                     # Página de inicio (login o dashboard)
+├── dashboard_profesor.html        # Panel principal del profesor
+├── dashboard_alumno.html          # Panel principal del alumno
+│
+├── pages/                         # Páginas secundarias
+│   ├── cursos.html                # Listado de cursos del alumno
+│   ├── tareas.html                # Listado de tareas de un curso
+│   ├── notas.html                 # Visualización de notas del alumno
+│   └── gestion_alumnos.html        # Gestión de alumnos por el profesor
+│
+├── assets/                        # Archivos estáticos
+│   ├── images/                    # Imágenes de la plataforma
+│   ├── fonts/                     # Fuentes personalizadas
+│   └── icons/                     # Iconos de la interfaz
+│
+├── css/                           # Archivos CSS
+│   ├── styles.css                 # Estilos globales
+│   ├── profesor.css               # Estilos específicos del panel del profesor
+│   └── alumno.css                 # Estilos específicos del panel del alumno
+│
+├── js/                            # Archivos JavaScript
+│   ├── main.js                    # Funciones generales de la plataforma
+│   ├── profesor.js                # Funciones específicas del profesor
+│   ├── alumno.js                  # Funciones específicas del alumno
+│   └── api.js                     # Comunicación con la API
+│
+
+│
+├── config/                        # Configuración general
+│   └── database.php               # Conexión a la base de datos
+│
+└── .gitignore                     # Archivos a ignorar en Git

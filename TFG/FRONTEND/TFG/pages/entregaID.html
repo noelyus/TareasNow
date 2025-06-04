@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+     <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+  <title>Detalle de Entrega</title>
+</head>
+<body>
+
+<div id="menu-usuario"></div>
+
+<h1>Entrega de Tarea</h1>
+<div id="contenedor-entrega">
+  <p><strong>Alumno:</strong> <span id="nombre_alumno"></span></p>
+  <p><strong>Título:</strong> <span id="titulo"></span></p>
+  <p><strong>Asignatura:</strong> <span id="nombre_asignatura"></span></p>
+  <p><strong>Fecha de entrega:</strong> <span id="fecha_entrega"></span></p>
+  <p><strong>Comentario del alumno:</strong> <span id="Comentarioalumno"></span></p>
+  <p><strong>Comentario del profesor:</strong> <span id="Comentarioprofesor"></span></p>
+  <p><strong>Nota:</strong> <span id="nota"></span></p>
+  
+  <div id="form-nota" style="display:none;">
+    <label for="nota_prof">Poner Nota:</label>
+    <input type="number" id="nota_prof" min="0" max="10" />
+    <input type="text" id="coment-profe" />
+
+    <button onclick="guardarNota()">Guardar Nota</button>
+  </div>
+</div>
+
+<!-- Contenedor donde se muestran los archivos -->
+<div id="archivos-entrega"></div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const idEntrega = params.get("id_entrega_completa");
+
+  if (!idEntrega) {
+    alert("No se ha seleccionado ninguna entrega.");
+  } else {
+    fetch(`../../../BACKEND/TFG/api/get_entregaID.php?id_entrega_completa=${idEntrega}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        const entrega = data.entrega;
+        const rol = data.rol;
+
+        document.getElementById("nombre_alumno").textContent = entrega.nombre_alumno;
+        document.getElementById("titulo").textContent = entrega.titulo;
+        document.getElementById("nombre_asignatura").textContent = entrega.nombre_asignatura;
+        document.getElementById("fecha_entrega").textContent = entrega.fecha_entrega;
+        document.getElementById("Comentarioalumno").textContent = entrega.Comentarioalumno;
+        document.getElementById("Comentarioprofesor").textContent = entrega.Comentarioprofesor;
+        document.getElementById("nota").textContent = entrega.nota ?? "Sin calificar";
+
+        if (rol == 2) {
+          document.getElementById("form-nota").style.display = "block";
+         
+        }
+
+        generarMenu(rol);
+    // Mostrar archivos si existen
+if (data.archivos && Array.isArray(data.archivos) && data.archivos.length > 0) {
+    let htmlArchivos = `<h4>Archivos adjuntos:</h4>`;
+
+    data.archivos.forEach(archivo => {
+        const extension = archivo.ruta_archivo.split('.').pop().toLowerCase(); // extensión del archivo
+        const rutaCompleta = `../../../BACKEND/TFG/${archivo.ruta_archivo}`;
+        const nombre = archivo.nombre_archivo;
+
+        if (["mp4", "webm"].includes(extension)) {
+            htmlArchivos += `
+                <p><strong>${nombre}</strong></p>
+                <video width="600" controls>
+                    <source src="${rutaCompleta}" type="video/${extension}">
+                    Tu navegador no soporta el video.
+                </video><br><br>`;
+        } else if (["mp3", "ogg"].includes(extension)) {
+            htmlArchivos += `
+                <p><strong>${nombre}</strong></p>
+                <audio controls>
+                    <source src="${rutaCompleta}" type="audio/${extension}">
+                    Tu navegador no soporta el audio.
+                </audio><br><br>`;
+        } else if (extension === "pdf") {
+            htmlArchivos += `
+                <p><strong>${nombre}</strong></p>
+                <iframe src="${rutaCompleta}" width="100%" height="500px"></iframe><br><br>`;
+        } else {
+            htmlArchivos += `
+                <p><strong>${nombre}</strong>: <a href="${rutaCompleta}" target="_blank">Descargar archivo</a></p>`;
+        }
+    });
+
+    // Añadirlo al contenedor
+    document.getElementById("contenedor-entrega").innerHTML += htmlArchivos;
+
+    
+
+}
+  });
+}
+
+
+  function guardarNota() {
+  const nuevaNota = document.getElementById("nota_prof").value;
+  const nuevoComent = document.getElementById("coment-profe").value;
+
+  if (nuevaNota === "" || isNaN(nuevaNota)) {
+    alert("Introduce una nota válida.");
+    return;
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("comentarioProfeNuevo", nuevoComent || "");
+  formData.append("id_entrega_completa", idEntrega);
+  formData.append("nota", nuevaNota);
+
+  fetch("../../../backend/tfg/api/guardar_nota.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Nota guardada correctamente.");
+      document.getElementById("nota").textContent = nuevaNota;
+    } else {
+      alert("Error al guardar la nota.");
+    }
+  });
+}
+  function generarMenu(rol) {
+    const menu = document.getElementById("menu-usuario");
+    let htmlMenu = `<nav><ul>`;
+
+    if (rol == 1) {
+      htmlMenu += `
+        <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php">Dashboard</a></li>
+        <li><a href="../pages/cursos.html">Asignaturas</a></li>
+        <li><a href="../pages/tareas.html">Tareas</a></li>
+        <li><a href="../pages/notas.html">Notas</a></li>
+        <li><a href="../index.html">Cerrar sesión</a></li>`;
+    } else if (rol == 2) {
+      htmlMenu += `
+        <li><a href="../dashboard_profesor.html">Dashboard</a></li>
+        <li><a href="asignaturas_profesor.html">Asignaturas</a></li>
+        <li><a href="tareas_profesor.html">Tareas</a></li>
+        <li><a href="tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+        <li><a href="../index.html">Cerrar sesión</a></li>`;
+    }
+
+    htmlMenu += `</ul></nav>`;
+    menu.innerHTML = htmlMenu;
+  }
+</script>
+  <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+</body>
+</html>

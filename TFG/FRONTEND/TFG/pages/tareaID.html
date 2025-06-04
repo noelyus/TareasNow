@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+     <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+
+  <title>Detalles de la Tarea</title>
+</head>
+<body> <!--Aqui abajo se creara el menu de navegacion segun el rol del usuario-->
+  <nav id="menu-navegacion"></nav>
+<!--En el div de abajo se generara la tarea automaticamente con los datos recibidos del backend-->
+  <div class="contenido-tarea" id="contenido-tarea">
+
+  </div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Partiendo del id de una tarea en el link de la pagina
+        const params = new URLSearchParams(window.location.search);
+        const tareaId = params.get("id");
+        
+        if (!tareaId) {
+            alert("No se especificó ninguna tarea.");
+            return;
+        }
+    
+        // Llamada al PHP para obtener los datos de la tarea
+        fetch(`../../../BACKEND/TFG/api/get_tareaID.php?id=${tareaId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+    
+                // Mostrar los datos de la tarea
+                const tarea = data.tarea[0]; // como viene en array
+                const contenedor = document.getElementById("contenido-tarea");
+                contenedor.innerHTML = `
+                    <h2>${tarea.titulo_tarea}</h2>
+                    <h3><strong>curso:</strong> ${tarea.curso} - ${tarea.nivel_curso}</h3>
+                    <h4><strong>Asignatura:</strong> ${tarea.asignatura}</h4>
+                    <p><strong>Descripción:</strong> ${tarea.descripcion}</p>
+                    <p><strong>Fecha límite:</strong> ${tarea.fecha_limite}</p>
+                    
+        
+                `;
+
+                let htmlTarea = '';
+
+// En el siguiente bloque se definira la visualizacion de los archivos en la pagina
+if (data.archivos && data.archivos.length > 0) { //comprobamos que hay archivo
+    htmlTarea += `<h4>Archivos adjuntos:</h4>`;
+    data.archivos.forEach(archivo => {
+        const extension = archivo.tipo; //Sacamos la extension del archivo que envia el backend.
+        const ruta = `../../../BACKEND/TFG/${archivo.ruta}`;
+        if (["mp4", "webm"].includes(extension)) {
+            htmlTarea += `
+                <video width="600" controls>
+                  <source src="${ruta}" type="video/${extension}">
+                  Tu navegador no soporta el video.
+                </video>
+            `;
+        } else if (["mp3", "ogg"].includes(extension)) {
+            htmlTarea += `
+                <audio controls>
+                  <source src="${ruta}" type="audio/${extension}">
+                  Tu navegador no soporta el audio.
+                </audio>
+            `;
+        } else if (extension === "pdf") {
+            htmlTarea += `<iframe src="${ruta}" width="100%" height="500px"></iframe>`;
+        } else {
+            htmlTarea += `<p><a href="${ruta}" target="_blank">${archivo.nombre}</a></p>`;
+        }
+    });
+}
+
+// Tablas para el profesor
+if (data.id_rol == 2) {
+    htmlTarea += `<h3>Entregas Hechas</h3>`;
+    htmlTarea += `<table border="1">
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Título</th>
+                        <th>Nota</th>
+                        <th>Fecha Entrega</th>
+                    </tr>`;
+    data.hechas.forEach(entrega => {
+        htmlTarea += `
+            <tr>
+                <td>${entrega.nombre_alumno}</td>
+                <td><a href="entregaID.html?id_entrega_completa=${entrega.id_entrega_completa}">${entrega.titulo}</a></td>
+                <td>${entrega.nota}</td>
+                <td>${entrega.fecha_entrega}</td>
+            </tr>`;
+    });
+    htmlTarea += `</table>`;
+
+    htmlTarea += `<h3>Entregas No Hechas</h3>`;
+    htmlTarea += `<table border="1">
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Título</th>
+                        <th>Asignatura</th>
+                        <th>Fecha Límite</th>
+                    </tr>`;
+    data.no_hechas.forEach(entrega => {
+        htmlTarea += `
+            <tr>
+                <td>${entrega.nombre_alumno}</td>
+                <td>${entrega.titulo_tarea}</td>
+                <td>${entrega.nombre_asignatura}</td>
+                <td>${entrega.fecha_limite}</td>
+            </tr>`;
+    });
+    htmlTarea += `</table>`;
+    
+}
+if (data.id_rol == 1){
+  
+   const yaEntregada = data.hechas.some(entrega => entrega.id_usuario == data.id_usuario && entrega.id_tarea == tareaId);
+    
+    if (yaEntregada) {
+        let TareaEntregada = data.hechas.find((entrega => entrega.id_usuario == data.id_usuario && entrega.id_tarea == tareaId));
+        htmlTarea += `
+           <p><strong>Ya has entregado esta tarea.</strong></p><br>
+            <a href="entregaID.html?id_entrega_completa=${TareaEntregada.id_entrega_completa}">
+                <button>Ver mi entrega</button>
+            </a>`
+    } else {
+        htmlTarea += `
+            <h3>Entregar Tarea</h3>
+            <form action="../../../BACKEND/TFG/api/completar_tareas.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id_usuario" value="${data.id_usuario}" />
+                <input type="hidden" name="id_tarea" value="${tareaId}" />
+
+                <label for="comentario">Comentario (opcional):</label><br>
+                <textarea name="comentario" id="comentario" rows="4" cols="50"></textarea><br><br>
+
+                <label for="archivo">Archivo a entregar:</label><br>
+                <input type="file" name="archivo" id="archivo" required><br><br>
+
+                <button type="submit">Enviar Tarea</button>
+            </form>
+        `;
+    }
+
+}
+contenedor.innerHTML += htmlTarea;
+
+    
+                // Generar menú según el rol
+                const menu = document.getElementById("menu-navegacion");
+                if (data.id_rol == 2) {
+                    // Menú para profesores
+                    menu.innerHTML = `
+                    <nav>
+                         <ul>
+            <li><a href="../dashboard_profesor.html">Dashboard</a></li>
+            <li><a href="asignaturas_profesor.html">Asignaturas</a></li>
+            <li><a href="tareas_profesor.html">Tareas</a></li>
+            <li><a href="tareas_puntuadas_profesor.html">Tareas puntuadas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+        </nav>
+                    `;
+                } else if (data.id_rol == 1) {
+                    // Menú para alumnos
+                    menu.innerHTML = `
+                        <ul>
+            <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php">Dashboard</a></li>
+            <li><a href="../pages/cursos.html">Asignaturas</a></li>
+            <li><a href="../pages/tareas.html">Tareas</a></li>
+            <li><a href="../pages/notas.html" >Notas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+        </ul>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error("Error al obtener los datos de la tarea:", error);
+            });
+    });
+
+
+    </script>
+      <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+    
+</body>
+</html>

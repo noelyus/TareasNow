@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas - Plataforma Educativa</title>
+   <link rel="stylesheet" href="../css/styles.css"> <!-- Enlace al archivo CSS -->
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav>
+        <ul>
+            <li><a href="../../../BACKEND/TFG/api/ir_dashboard.php" >Dashboard</a></li>
+            <li><a href="../pages/cursos.html">Asignaturas</a></li>
+            <li><a href="../pages/tareas.html">Tareas</a></li>
+            <li><a href="../pages/notas.html">Notas</a></li>
+            <li><a href="../index.html">Cerrar sesión</a></li>
+    </nav>
+<!-- Buscador para las tareas -->
+<input type="text" id="buscadorTareas" placeholder="Buscar tarea...">
+
+<!-- Botones para cambiar entre tareas -->
+<div style="float: center;">
+  <button id="btnTareas1">Mostrar Tareas Completas</button>
+  <button id="btnTareas2">Mostrar Tareas Incompletas</button>
+</div>
+<!--Contenedor para las Tareas-->
+<div id="contenedorTarjetas"></div>
+<script>
+  let datosOriginales = []; //definimos la variable array datosoriginales
+  let tipoActual = ""; //definimos la variable tipoactual
+
+  document.getElementById("btnTareas1").addEventListener("click", () => {
+    tipoActual = "tareasHechas";
+    cargarDatos("../../../BACKEND/TFG/api/get_tareasDONE.php", tipoActual);
+  });//definimos que cuando se pulse click en el boton de tareas hechas se cambie el tipo actual a tareasHechas y se ejecute 
+  //la funcion de cargar datos con la url de donde se sacarn estos y el tipo de datos como parametros
+
+  document.getElementById("btnTareas2").addEventListener("click", () => {
+    tipoActual = "tareasSinHacer";
+    cargarDatos("../../../BACKEND/TFG/api/get_tareasNOTDONE.php", tipoActual);
+  });//lo mismo del bloque de arriba pero con las tareas que no se han completado
+
+  function cargarDatos(url, tipo) {
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        datosOriginales = data;
+        mostrarTarjetas(data, tipo);
+      })
+      .catch(error => console.error("Error al cargar datos:", error));
+  }//definimos la funcion de cargar datos con dos parametros , sacamos los datos a response y los metemos en data ahora guardamos
+  //las tareas que se reciban en datos originales y ejecutamos mostrar targetas con dos parametros
+
+  function mostrarTarjetas(datos, tipo) {//definimos la funcion mostrar targetas con los parametros datos y tipo de datos
+    const contenedor = document.getElementById("contenedorTarjetas");//buscamos el div contenedor tarjetas y lo guardamos en la variable
+    //contenedor
+    contenedor.innerHTML = "";//concatenamos un html vacio dentro del contenedor
+
+    datos.forEach(item => {
+      const tarjeta = document.createElement("div"); //definimos la constante tarjeta que sera un div que se cree por
+      //fila de los datos
+      tarjeta.className = "card"; //le establecemos una clase para los estilos mas adelante
+
+      if (tipo === "tareasHechas") {//si el tipo de dato es tareasHechas entonces concatenaremos en tarjeta el siguiente html 
+        //con los siguientes datos que se recojan tienen nombres distintos porque vienen de archivos distintos
+        tarjeta.innerHTML = `
+          <h3><strong>Título:</strong><a href="tareaID.html?id=${item.id_tarea}"> ${item.titulo}</a></h3>
+          <p><strong>Nota:</strong> ${item.nota}</p>
+          <p><strong>Asignatura:</strong> ${item.nombre_asigantura}</p>
+          <p><strong>Entregado el:</strong> ${item.fecha_entrega}</p>
+        `;
+      } else if (tipo === "tareasSinHacer") {
+        tarjeta.innerHTML = `
+          <h3><strong>Nombre de la tarea:</strong><a href="tareaID.html?id=${item.id_tarea}"> ${item.titulo_tarea}</a></h3>
+          <p><strong>Asignatura:</strong> ${item.nombre_asignatura}</p>
+          <p><strong>Fecha Límite de entrega:</strong> ${item.fecha_limite}</p>
+        `;
+      }
+
+      contenedor.appendChild(tarjeta); //metemos cada tarjeta en el contenedor de las tareas
+    });
+  }
+
+  // Funciona solo con las tareas sin hacer
+  document.getElementById("buscadorTareas").addEventListener("input", () => {
+    const texto = document.getElementById("buscadorTareas").value.toLowerCase();
+
+    const filtrado = datosOriginales.filter(item => {
+      if (tipoActual === "tareasHechas") {
+        return (
+          item.titulo.toLowerCase().includes(texto) ||
+          item.asigantura.toLowerCase().includes(texto) ||
+          item.fecha_entrega.toLowerCase().includes(texto)
+        );
+      } else if (tipoActual === "tareasSinHacer") {
+        return (
+          item.titulo_tarea.toLowerCase().includes(texto) ||
+          item.nombre_asignatura.toLowerCase().includes(texto) ||
+          item.fecha_limite.toLowerCase().includes(texto)
+        );
+      }
+      return false;
+    });
+
+    mostrarTarjetas(filtrado, tipoActual);
+  });
+
+  // Cargar por defecto las tareas sin hacer
+  window.onload = () => {
+    tipoActual = "tareasSinHacer";
+    cargarDatos("../../../BACKEND/TFG/api/get_tareasNOTDONE.php", tipoActual);
+  };
+</script>
+  <footer>
+            <p>&copy; 2025 Plataforma de Noe Rodriguez Rojo | Todos los derechos reservados</p>
+        </footer>
+
+</body>
+</html>
